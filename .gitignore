@@ -1,0 +1,82 @@
+# Global settings
+.DS_Store
+*.log
+*.env
+*.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Node.js (common)
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Client (Remix JS - React)
+client/node_modules
+client/build
+client/.cache
+client/dist
+client/public/build/
+client/public/static/
+client/.next/
+client/out/
+client/assets/
+client/.sass-cache/
+client/.eslintcache
+client/*.tsbuildinfo
+
+# Contract (Sui Move)
+contract/target
+contract/.move
+contract/move.lock
+contract/tests/*.out
+contract/tests/*.log
+
+# Rust toolchain for Sui
+contract/Cargo.lock
+contract/Cargo.toml
+contract/target/
+contract/*.rs.bk
+
+# Server (NestJS)
+server/node_modules
+server/dist/
+server/build/
+server/logs/
+server/tmp/
+server/.cache
+server/.sass-cache
+server/.eslintcache
+server/*.tsbuildinfo
+
+# Logs
+logs
+*.log
+pids
+*.pid
+*.pid.lock
+
+# Dependency directories
+.cache/
+coverage/
+tmp/
+out/
+
+# Build outputs
+/build
+/dist
+/public
+
+# IDE-specific
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Terraform (if applicable)
+/.terraform
+*.tfstate
+*.tfstate.backup
