@@ -40,6 +40,7 @@ contract/Cargo.lock
 contract/Cargo.toml
 contract/target/
 contract/*.rs.bk
+contract/loy/build
 
 # Server (NestJS)
 server/node_modules
@@ -80,3 +81,6 @@ out/
 /.terraform
 *.tfstate
 *.tfstate.backup
+
+
+.env*
