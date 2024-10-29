@@ -141,11 +141,14 @@ Create the loy project
 sui move new loy
 ```
 
-Build the project
+Test, build and publish the project
 
 ```
+sui move test
 sui move build
+
+sui client publish --gas-budget 100000000
 ```
 
 ## References
-- <https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/test/test_scenario.move>
+- <https://github.com/MystenLabs/sui/blob/testnet-v1.36.2/crates/sui-framework/packages/sui-framework/sources/test/test_scenario.move>
