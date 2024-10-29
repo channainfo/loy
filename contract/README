@@ -147,3 +147,5 @@ Build the project
 sui move build
 ```
 
+## References
+- <https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/test/test_scenario.move>
