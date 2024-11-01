@@ -11,47 +11,12 @@ module loy::loy {
   }
 
   fun init(witness: LOY, ctx: &mut TxContext) {
-    create_admin_cap(ctx);
     create_loy_coin(witness, ctx);
+    create_admin_cap(ctx);
   }
 
   public entry fun mint(treasury_cap: &mut TreasuryCap<LOY>, amount: u64, recipient: address, ctx: &mut TxContext) {
     coin::mint_and_transfer(treasury_cap, amount, recipient, ctx);
-  }
-
-  #[test]
-  fun test_mint() {
-    use sui::test_scenario;
-    use loy::debugger;
-
-    let sender = @0x001;
-    let recipient = @0x002;
-    let mut scenario = test_scenario::begin(sender);
-
-    {
-      let ctx = test_scenario::ctx(&mut scenario);
-      let witness = LOY { };
-      init(witness, ctx);
-    };
-
-    test_scenario::next_tx(&mut scenario, sender);
-    {
-      let mut treasury_cap = test_scenario::take_from_sender<TreasuryCap<LOY>>(&scenario);
-      let ctx = test_scenario::ctx(&mut scenario);
-      mint(&mut treasury_cap, 47, recipient, ctx);
-      test_scenario::return_to_address(sender, treasury_cap);
-    };
-
-    test_scenario::next_tx(&mut scenario, sender);
-    {
-      let loy_coin = test_scenario::take_from_address<coin::Coin<LOY>>(&scenario, recipient);
-      let value = sui::balance::value<LOY>(coin::balance(&loy_coin));
-      debugger::print_data(&value);
-      assert!(value == 47, 0);
-      test_scenario::return_to_address(recipient, loy_coin);
-    };
-
-    test_scenario::end(scenario);
   }
 
   #[allow(lint(self_transfer))]
@@ -70,30 +35,6 @@ module loy::loy {
     transfer::public_transfer(treasury_cap, tx_context::sender(ctx));
   }
 
-  #[test]
-  fun test_create_loy_coin() {
-    use sui::test_scenario;
-    use loy::debugger;
-
-    let sender = @0x001;
-    let mut scenario = test_scenario::begin(sender);
-
-    {
-      let witness = LOY {};
-      let ctx = test_scenario::ctx(&mut scenario);
-      create_loy_coin(witness, ctx);
-    };
-
-    test_scenario::next_tx(&mut scenario, sender);
-    {
-      let has_treasury_cap = test_scenario::has_most_recent_for_sender<TreasuryCap<LOY>>(&scenario);
-      debugger::print_data(&has_treasury_cap);
-      assert!(has_treasury_cap == true, 0);
-    };
-
-    test_scenario::end(scenario);
-  }
-
   fun create_admin_cap(ctx: &mut TxContext) {
     let admin_cap = AdminCap {
       id: object::new(ctx)
@@ -103,24 +44,9 @@ module loy::loy {
     transfer::transfer(admin_cap, sender)
   }
 
-  #[test]
-  fun test_create_admin_cap() {
-    use sui::test_scenario::{Self, Scenario};
-
-    let sender = @0x001;
-    let mut scenario: Scenario = test_scenario::begin(sender);
-
-    {
-      let ctx = test_scenario::ctx(&mut scenario);
-      create_admin_cap(ctx);
-    };
-
-    test_scenario::next_tx(&mut scenario, sender);
-    {
-      let is_admin_cap = test_scenario::has_most_recent_for_sender<AdminCap>(&scenario);
-      assert!(is_admin_cap == true, 0);
-    };
-
-    test_scenario::end(scenario);
+  #[test_only]
+  public fun init_helper( ctx: &mut TxContext){
+    init(LOY {}, ctx);
   }
+
 }
