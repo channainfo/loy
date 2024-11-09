@@ -1,5 +1,5 @@
 #[test_only]
-module loy::lock_test {
+module loy::coin_locker_test {
 
   #[test]
   public fun test_mint_and_transfer() {
@@ -7,7 +7,7 @@ module loy::lock_test {
     use sui::coin::{TreasuryCap};
 
     use loy::loy::{Self, LOY};
-    use loy::lock::{Self, Locker};
+    use loy::coin_locker::{Self, CoinLocker};
 
     let sender = @0x01;
     let recipient = @0x02;
@@ -32,7 +32,7 @@ module loy::lock_test {
       let mut treasury_cap = test_scenario::take_from_sender<TreasuryCap<LOY>>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
 
-      lock::mint_and_transfer(recipient, amount, start_time, duration_5years, commitment_1year, current_time, &mut treasury_cap, ctx);
+      coin_locker::mint_and_transfer(recipient, amount, start_time, duration_5years, commitment_1year, current_time, &mut treasury_cap, ctx);
 
       test_scenario::return_to_address(sender, treasury_cap);
     };
@@ -40,9 +40,9 @@ module loy::lock_test {
     test_scenario::next_tx(&mut scenario, recipient);
     {
       // 3. verify if the recipient recient the lock token correctly
-      let locker = test_scenario::take_from_address<Locker<LOY>>(&scenario, recipient);
+      let locker = test_scenario::take_from_address<CoinLocker<LOY>>(&scenario, recipient);
       let end_time = current_time + duration_5years;
-      let matched = lock::match_locker(&locker, recipient, current_time, end_time, commitment_1year, amount, amount);
+      let matched = coin_locker::match_locker(&locker, recipient, current_time, end_time, commitment_1year, amount, amount);
       assert!(matched == true, 0);
       test_scenario::return_to_address(recipient, locker);
     };
@@ -51,13 +51,13 @@ module loy::lock_test {
   }
 
   #[test]
-  #[expected_failure(abort_code=loy::lock::E_NOT_ENOUGH_COMMITMENT_TIME)]
+  #[expected_failure(abort_code=loy::coin_locker::E_NOT_ENOUGH_COMMITMENT_TIME)]
   public fun test_claim_vested_with_6months(){
     use sui::test_scenario;
     use sui::coin::{TreasuryCap};
 
     use loy::loy::{Self, LOY };
-    use loy::lock::{Self, Locker};
+    use loy::coin_locker::{Self, CoinLocker};
 
     let sender = @0x01;
     let recipient = @0x02;
@@ -80,7 +80,7 @@ module loy::lock_test {
       let mut treasury_cap = test_scenario::take_from_sender<TreasuryCap<LOY>>(& scenario);
       let ctx = test_scenario::ctx(&mut scenario);
 
-      lock::mint_and_transfer(recipient, amount, start_time,
+      coin_locker::mint_and_transfer(recipient, amount, start_time,
         duration_5years, commitment_1year, current_time, &mut treasury_cap, ctx);
 
       test_scenario::return_to_sender<TreasuryCap<LOY>>(&scenario, treasury_cap);
@@ -91,10 +91,10 @@ module loy::lock_test {
     {
       let commitment_6months = 15778476*1000;
       let after_6months: u64 = current_time + commitment_6months;
-      let mut locker = test_scenario::take_from_sender<Locker<LOY>>(&scenario);
+      let mut locker = test_scenario::take_from_sender<CoinLocker<LOY>>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
 
-      lock::claim_vested<LOY>(&mut locker, after_6months, ctx);
+      coin_locker::claim_vested<LOY>(&mut locker, after_6months, ctx);
 
       test_scenario::return_to_sender(&scenario, locker);
     };
@@ -108,7 +108,7 @@ module loy::lock_test {
     use sui::balance;
 
     use loy::loy::{Self, LOY };
-    use loy::lock::{Self, Locker};
+    use loy::coin_locker::{Self, CoinLocker};
     use loy::debugger;
 
     let sender = @0x01;
@@ -132,7 +132,7 @@ module loy::lock_test {
       let mut treasury_cap = test_scenario::take_from_sender<TreasuryCap<LOY>>(& scenario);
       let ctx = test_scenario::ctx(&mut scenario);
 
-      lock::mint_and_transfer(recipient, amount, start_time,
+      coin_locker::mint_and_transfer(recipient, amount, start_time,
         duration_5years, commitment_1year, current_time, &mut treasury_cap, ctx);
 
       test_scenario::return_to_sender<TreasuryCap<LOY>>(&scenario, treasury_cap);
@@ -145,9 +145,9 @@ module loy::lock_test {
     // After 3 years, he tries to claim the vested token
     test_scenario::next_tx(&mut scenario, recipient);
     {
-      let mut locker = test_scenario::take_from_sender<Locker<LOY>>(&scenario);
+      let mut locker = test_scenario::take_from_sender<CoinLocker<LOY>>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
-      lock::claim_vested<LOY>(&mut locker, after_3years, ctx);
+      coin_locker::claim_vested<LOY>(&mut locker, after_3years, ctx);
       test_scenario::return_to_sender(&scenario, locker);
     };
 
@@ -161,9 +161,9 @@ module loy::lock_test {
       test_scenario::return_to_sender(&scenario, loy_coin);
 
       // He has left half
-      let locker = test_scenario::take_from_sender<Locker<LOY>>(&scenario);
+      let locker = test_scenario::take_from_sender<CoinLocker<LOY>>(&scenario);
       debugger::print_data(&locker);
-      let matched = lock::match_locker(&locker, recipient, current_time, end_time, commitment_1year, amount, 500_000);
+      let matched = coin_locker::match_locker(&locker, recipient, current_time, end_time, commitment_1year, amount, 500_000);
       assert!(matched == true, 0);
 
       test_scenario::return_to_sender(&scenario, locker);
@@ -172,9 +172,9 @@ module loy::lock_test {
     // He tries to claim the vested token again, nothing changes
     test_scenario::next_tx(&mut scenario, recipient);
     {
-      let mut locker = test_scenario::take_from_sender<Locker<LOY>>(&scenario);
+      let mut locker = test_scenario::take_from_sender<CoinLocker<LOY>>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
-      lock::claim_vested<LOY>(&mut locker, after_3years, ctx);
+      coin_locker::claim_vested<LOY>(&mut locker, after_3years, ctx);
       test_scenario::return_to_sender(&scenario, locker);
     };
 
@@ -190,9 +190,9 @@ module loy::lock_test {
       test_scenario::return_to_sender(&scenario, loy_coin);
 
       // He has left half
-      let locker = test_scenario::take_from_sender<Locker<LOY>>(&scenario);
+      let locker = test_scenario::take_from_sender<CoinLocker<LOY>>(&scenario);
       debugger::print_data(&locker);
-      let matched = lock::match_locker(&locker, recipient, current_time, end_time, commitment_1year, amount, 500_000);
+      let matched = coin_locker::match_locker(&locker, recipient, current_time, end_time, commitment_1year, amount, 500_000);
       assert!(matched == true, 0);
 
       test_scenario::return_to_sender(&scenario, locker);

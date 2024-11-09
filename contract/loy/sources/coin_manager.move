@@ -1,4 +1,4 @@
-module loy::loy_manager {
+module loy::coin_manager {
   use sui::coin::{Self, TreasuryCap};
 
   public entry fun mint_to<T>(recipient: address, amount: u64, treasury_cap: &mut TreasuryCap<T>, ctx: &mut TxContext) {
