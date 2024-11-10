@@ -12,10 +12,6 @@ module loy::marketplace {
     id: UID,
     name: vector<u8>,
     product_counts: u64,
-
-    listing_fee: u8,
-    purchase_fee: u8,
-
     products: Bag,
     payments: Bag,
   }
@@ -29,37 +25,33 @@ module loy::marketplace {
   }
 
   fun init(ctx: &mut TxContext) {
-    let default_marketplace = Marketplace {
-      id: object::new(ctx),
-      name: DEFAULT_NAME,
-      listing_fee: 0,
-      purchase_fee: 0,
-      product_counts: 0,
-      products: bag::new(ctx),
-      payments: bag::new(ctx),
-    };
+    launch_default_marketplace(ctx);
+  }
 
+  public fun launch_default_marketplace(ctx: &mut TxContext){
+    let default_marketplace = launch_marketplace(DEFAULT_NAME, ctx);
     transfer::public_share_object(default_marketplace);
   }
 
-  public fun launch_marketplace(name: vector<u8>, listing_fee: u8, purchase_fee: u8, ctx: &mut TxContext): Marketplace {
+  public fun launch_marketplace(name: vector<u8>, ctx: &mut TxContext): Marketplace {
     let id = object::new(ctx);
 
-     Marketplace {
+    Marketplace {
       id,
       name,
       product_counts: 0,
-      listing_fee,
-      purchase_fee,
       products: bag::new(ctx),
       payments: bag::new(ctx),
-     }
+    }
   }
 
-  public fun list_item<T: key+store, TCOIN>(listing_price: u64, item: T, marketplace: &mut Marketplace, clock: &Clock, ctx: &mut TxContext) {
-
-    let id = object::new(ctx);
+  public entry fun list_item_entry<T: key+store, TCOIN>( item: T, listing_price: u64, clock: &Clock, marketplace: &mut Marketplace, ctx: &mut TxContext) {
     let listing_date = clock::timestamp_ms(clock);
+    list_item<T, TCOIN>(item, listing_price, listing_date, marketplace, ctx);
+  }
+
+  public fun list_item<T: key+store, TCOIN>( item: T, listing_price: u64, listing_date: u64, marketplace: &mut Marketplace, ctx: &mut TxContext) {
+    let id = object::new(ctx);
     let owner_address = tx_context::sender(ctx);
 
     let product_listing = ItemListing<T, TCOIN> {
@@ -108,5 +100,10 @@ module loy::marketplace {
 
     let sender = tx_context::sender(ctx);
     transfer::public_transfer(item, sender);
+  }
+
+  #[test_only]
+  public fun match_marketplace(marketplace: &Marketplace, name: vector<u8>, product_counts: u64): bool {
+    marketplace.name == name && marketplace.product_counts == product_counts
   }
 }
