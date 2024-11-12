@@ -87,18 +87,18 @@ module loy::marketplace {
   }
 
   #[allow(lint(self_transfer))]
-  public fun purchase_product<T: key+store, TCOIN>(paid_amount: Coin<TCOIN>, item_id: ID, marketplace: &mut Marketplace, ctx: &mut TxContext){
+  public fun buy_item<T: key+store, TCOIN>(paid_coin: Coin<TCOIN>, item_id: ID, marketplace: &mut Marketplace, ctx: &mut TxContext){
     let product_listing = bag::remove<ID, ItemListing<T, TCOIN>>(&mut marketplace.products, item_id);
     let ItemListing { id: id, item, listing_price, listing_date: _date, owner_address } = product_listing;
 
-    assert!(coin::value(&paid_amount) == listing_price, E_PAID_PRICE_INCORRECT);
+    assert!(coin::value(&paid_coin) == listing_price, E_PAID_PRICE_INCORRECT);
 
     if(bag::contains(&marketplace.payments, owner_address)) {
       let total_coin = bag::borrow_mut<address, Coin<TCOIN>>(&mut marketplace.payments, owner_address);
-      coin::join(total_coin, paid_amount);
+      coin::join(total_coin, paid_coin);
     }
     else {
-      bag::add(&mut marketplace.payments, owner_address, paid_amount);
+      bag::add(&mut marketplace.payments, owner_address, paid_coin);
     };
 
     object::delete(id);

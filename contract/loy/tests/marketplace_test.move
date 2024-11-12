@@ -78,10 +78,9 @@ module loy::marketplace_test {
   }
 
   #[test]
-  public fun test_delist() {
+  public fun test_delist_item() {
 
     use sui::test_scenario;
-    use sui::coin::{Coin};
     use loy::loy::{LOY};
     use loy::marketplace::{Self, Marketplace};
 
@@ -116,7 +115,7 @@ module loy::marketplace_test {
       let mut mk = test_scenario::take_shared<Marketplace>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
 
-      marketplace::list_item<Item, Coin<LOY>>(item, listing_price, listing_date, &mut mk, ctx);
+      marketplace::list_item<Item, LOY>(item, listing_price, listing_date, &mut mk, ctx);
       test_scenario::return_shared(mk);
 
       item_id
@@ -129,7 +128,7 @@ module loy::marketplace_test {
       let mut mk = test_scenario::take_shared<Marketplace>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
 
-      marketplace::delist_item<Item, Coin<LOY>>(item_id, &mut mk, ctx);
+      marketplace::delist_item<Item, LOY>(item_id, &mut mk, ctx);
       test_scenario::return_shared(mk);
     };
 
@@ -145,6 +144,199 @@ module loy::marketplace_test {
       test_scenario::return_shared<Marketplace>(mk);
     };
     test_scenario::end(scenario);
+  }
 
+  #[test]
+  public fun test_buy_item_sucesss() {
+
+    use sui::test_scenario;
+    use sui::coin::{Self, Coin, TreasuryCap};
+
+    use loy::marketplace::{Self, Marketplace};
+    use loy::loy::{Self, LOY};
+    use loy::coin_manager;
+
+    let owner = @0x001;
+    let user1 = @0x0021;
+    let user2 = @0x0022;
+    let name = b"LOY Default";
+    let listing_price: u64 = 25_000;
+    let listing_date: u64 = 1_870_000_000_000;
+
+    let total_mint: u64 = 400_000;
+
+    let mut scenario = test_scenario::begin(user1);
+
+    // launch a market place
+    {
+      let ctx = test_scenario::ctx(&mut scenario);
+      marketplace::launch_marketplace(name, ctx)
+    };
+
+    // mint an item for user2
+    test_scenario::next_tx(&mut scenario, user2);
+    {
+      let ctx = test_scenario::ctx(&mut scenario);
+      let item = Item {
+        id: object::new(ctx),
+        name: option::some(b"LOY CARD"),
+        url: option::none()
+      };
+
+      transfer::public_transfer(item, user2);
+    };
+
+    // user2 send item to be listed
+    test_scenario::next_tx(&mut scenario, user2);
+    let item_id = {
+      let item = test_scenario::take_from_sender<Item>(&scenario);
+      let item_id = object::id(&item);
+
+      let mut mk = test_scenario::take_shared<Marketplace>(&scenario);
+      let ctx = test_scenario::ctx(&mut scenario);
+
+      marketplace::list_item<Item, LOY>(item, listing_price, listing_date, &mut mk, ctx);
+      test_scenario::return_shared(mk);
+
+      item_id
+    };
+
+    ::loy::debugger::print_data(&item_id);
+
+    // init coin to the owner
+    test_scenario::next_tx(&mut scenario, owner);
+    {
+      let ctx = test_scenario::ctx(&mut scenario);
+      loy::init_helper(ctx);
+    };
+
+    // mint the owner mint coin to user1 for total_mint
+    test_scenario::next_tx(&mut scenario, owner);
+    {
+      let mut treasury_cap = test_scenario::take_from_sender<TreasuryCap<LOY>>(&scenario);
+      let ctx = test_scenario::ctx(&mut scenario);
+
+      coin_manager::mint_to(user1, total_mint, &mut treasury_cap, ctx);
+      test_scenario::return_to_sender(&scenario, treasury_cap);
+    };
+
+    // user1 buy the item
+    test_scenario::next_tx(&mut scenario, user1);
+    {
+      let mut loy_coin = test_scenario::take_from_sender<Coin<LOY>>(&scenario);
+      let mut marketplace = test_scenario::take_shared<Marketplace>(&scenario);
+
+      let ctx = test_scenario::ctx(&mut scenario);
+
+      let paid_coin = coin::split(&mut loy_coin, listing_price, ctx);
+
+      marketplace::buy_item<Item, LOY>(paid_coin, item_id, &mut marketplace, ctx);
+
+      test_scenario::return_shared(marketplace);
+      test_scenario::return_to_sender(&scenario, loy_coin);
+    };
+
+    test_scenario::next_tx(&mut scenario, user1);
+    {
+      let item = test_scenario::take_from_sender<Item>(&scenario);
+      let loy_coin = test_scenario::take_from_sender<Coin<LOY>>(&scenario);
+
+      assert!(item.name == option::some(b"LOY CARD"), 0);
+      assert!(coin::value(&loy_coin) == ( total_mint - listing_price) , 0);
+
+      test_scenario::return_to_sender(&scenario, loy_coin);
+      test_scenario::return_to_sender(&scenario, item);
+    };
+    test_scenario::end(scenario);
+  }
+
+  #[test]
+  #[expected_failure(abort_code=loy::marketplace::E_PAID_PRICE_INCORRECT)]
+  public fun test_buy_item_failure() {
+
+    use sui::test_scenario;
+    use sui::coin::{Coin, TreasuryCap};
+
+    use loy::marketplace::{Self, Marketplace};
+    use loy::loy::{Self, LOY};
+    use loy::coin_manager;
+
+    let owner = @0x001;
+    let user1 = @0x0021;
+    let user2 = @0x0022;
+    let name = b"LOY Default";
+    let listing_price: u64 = 25_000;
+    let listing_date: u64 = 1_870_000_000_000;
+
+    let total_mint: u64 = 400_000;
+
+    let mut scenario = test_scenario::begin(user1);
+
+    // launch a market place
+    {
+      let ctx = test_scenario::ctx(&mut scenario);
+      marketplace::launch_marketplace(name, ctx)
+    };
+
+    // mint an item for user2
+    test_scenario::next_tx(&mut scenario, user2);
+    {
+      let ctx = test_scenario::ctx(&mut scenario);
+      let item = Item {
+        id: object::new(ctx),
+        name: option::some(b"LOY CARD"),
+        url: option::none()
+      };
+
+      transfer::public_transfer(item, user2);
+    };
+
+    // user2 send item to be listed
+    test_scenario::next_tx(&mut scenario, user2);
+    let item_id = {
+      let item = test_scenario::take_from_sender<Item>(&scenario);
+      let item_id = object::id(&item);
+
+      let mut mk = test_scenario::take_shared<Marketplace>(&scenario);
+      let ctx = test_scenario::ctx(&mut scenario);
+
+      marketplace::list_item<Item, LOY>(item, listing_price, listing_date, &mut mk, ctx);
+      test_scenario::return_shared(mk);
+
+      item_id
+    };
+
+    ::loy::debugger::print_data(&item_id);
+
+    // init coin to the owner
+    test_scenario::next_tx(&mut scenario, owner);
+    {
+      let ctx = test_scenario::ctx(&mut scenario);
+      loy::init_helper(ctx);
+    };
+
+    // mint the owner mint coin to user1 for total_mint
+    test_scenario::next_tx(&mut scenario, owner);
+    {
+      let mut treasury_cap = test_scenario::take_from_sender<TreasuryCap<LOY>>(&scenario);
+      let ctx = test_scenario::ctx(&mut scenario);
+
+      coin_manager::mint_to(user1, total_mint, &mut treasury_cap, ctx);
+      test_scenario::return_to_sender(&scenario, treasury_cap);
+    };
+
+    // user1 buy the item
+    test_scenario::next_tx(&mut scenario, user1);
+    {
+      let loy_coin = test_scenario::take_from_sender<Coin<LOY>>(&scenario);
+      let mut marketplace = test_scenario::take_shared<Marketplace>(&scenario);
+
+      let ctx = test_scenario::ctx(&mut scenario);
+
+      marketplace::buy_item<Item, LOY>(loy_coin, item_id, &mut marketplace, ctx);
+
+      test_scenario::return_shared(marketplace);
+    };
+    test_scenario::end(scenario);
   }
 }
