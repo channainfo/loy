@@ -20,14 +20,14 @@ module loy::coin_locker {
   }
 
   // clock address: 0x6 https://github.com/sui-foundation/sui-move-intro-course/blob/main/unit-three/lessons/6_clock_and_locked_coin.md#clock
-  public entry fun mint_and_transfer_entry<TCOIN>(recipient: address, amount: u64, start_time: u64, duration: u64, commitment_time: u64,
+  public entry fun mint_and_transfer<TCOIN>(recipient: address, amount: u64, start_time: u64, duration: u64, commitment_time: u64,
     clock_obj: &Clock, treasury_cap: &mut TreasuryCap<TCOIN>, ctx: &mut TxContext) {
     let current_time = clock::timestamp_ms(clock_obj);
 
-    mint_and_transfer(recipient, amount, start_time, duration, commitment_time, current_time, treasury_cap, ctx);
+    mint_and_transfer_helper(recipient, amount, start_time, duration, commitment_time, current_time, treasury_cap, ctx);
   }
 
-  public fun mint_and_transfer<TCOIN>(recipient: address, amount: u64, start_time: u64, duration: u64, commitment_time: u64,
+  public fun mint_and_transfer_helper<TCOIN>(recipient: address, amount: u64, start_time: u64, duration: u64, commitment_time: u64,
     current_time: u64, treasury_cap: &mut TreasuryCap<TCOIN>, ctx: &mut TxContext) {
 
     // let init_time = (start_time < current_time) ? current_time : start_time;
@@ -57,14 +57,14 @@ module loy::coin_locker {
     transfer::public_transfer(locker, recipient);
   }
 
-  public entry fun claim_vested_entry<TCOIN>(locker: &mut CoinLocker<TCOIN>, clock_obj: &Clock, ctx: &mut TxContext) {
+  public entry fun claim_vested<TCOIN>(locker: &mut CoinLocker<TCOIN>, clock_obj: &Clock, ctx: &mut TxContext) {
     let current_time = clock::timestamp_ms(clock_obj);
 
-    claim_vested<TCOIN>(locker, current_time, ctx);
+    claim_vested_helper<TCOIN>(locker, current_time, ctx);
   }
 
   #[allow(lint(self_transfer))]
-  public fun claim_vested<TCOIN>(locker: &mut CoinLocker<TCOIN>, current_time: u64, ctx: &mut TxContext) {
+  public fun claim_vested_helper<TCOIN>(locker: &mut CoinLocker<TCOIN>, current_time: u64, ctx: &mut TxContext) {
     let duration_taken = current_time - locker.start_time;
 
     assert!(duration_taken > locker.commitment_time, E_NOT_ENOUGH_COMMITMENT_TIME);

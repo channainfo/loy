@@ -30,7 +30,7 @@ module loy::marketplace_test {
   }
 
   #[test]
-  public fun test_list_item() {
+  public fun test_list_item_helper() {
     use sui::test_scenario;
     use loy::marketplace::{Self, Marketplace};
     use loy::loy::{LOY};
@@ -67,7 +67,7 @@ module loy::marketplace_test {
       let item = test_scenario::take_from_address<Item>(&scenario, other);
       let ctx = test_scenario::ctx(&mut scenario);
 
-      marketplace::list_item<Item, LOY>(item, listing_price, listing_date, &mut marketplace, ctx);
+      marketplace::list_item_helper<Item, LOY>(item, listing_price, listing_date, &mut marketplace, ctx);
 
       assert!(marketplace::match_marketplace(&marketplace, marketplace::default_marketplace(), 1 ) == true, 0);
 
@@ -78,7 +78,7 @@ module loy::marketplace_test {
   }
 
   #[test]
-  public fun test_delist_item() {
+  public fun test_delist_item_helper() {
 
     use sui::test_scenario;
     use loy::loy::{LOY};
@@ -115,7 +115,7 @@ module loy::marketplace_test {
       let mut mk = test_scenario::take_shared<Marketplace>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
 
-      marketplace::list_item<Item, LOY>(item, listing_price, listing_date, &mut mk, ctx);
+      marketplace::list_item_helper<Item, LOY>(item, listing_price, listing_date, &mut mk, ctx);
       test_scenario::return_shared(mk);
 
       item_id
@@ -195,7 +195,7 @@ module loy::marketplace_test {
       let mut mk = test_scenario::take_shared<Marketplace>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
 
-      marketplace::list_item<Item, LOY>(item, listing_price, listing_date, &mut mk, ctx);
+      marketplace::list_item_helper<Item, LOY>(item, listing_price, listing_date, &mut mk, ctx);
       test_scenario::return_shared(mk);
 
       item_id
@@ -300,7 +300,7 @@ module loy::marketplace_test {
       let mut mk = test_scenario::take_shared<Marketplace>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
 
-      marketplace::list_item<Item, LOY>(item, listing_price, listing_date, &mut mk, ctx);
+      marketplace::list_item_helper<Item, LOY>(item, listing_price, listing_date, &mut mk, ctx);
       test_scenario::return_shared(mk);
 
       item_id

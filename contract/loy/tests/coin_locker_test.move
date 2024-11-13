@@ -2,7 +2,7 @@
 module loy::coin_locker_test {
 
   #[test]
-  public fun test_mint_and_transfer() {
+  public fun test_mint_and_transfer_helper() {
     use sui::test_scenario;
     use sui::coin::{TreasuryCap};
 
@@ -32,7 +32,7 @@ module loy::coin_locker_test {
       let mut treasury_cap = test_scenario::take_from_sender<TreasuryCap<LOY>>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
 
-      coin_locker::mint_and_transfer(recipient, amount, start_time, duration_5years, commitment_1year, current_time, &mut treasury_cap, ctx);
+      coin_locker::mint_and_transfer_helper(recipient, amount, start_time, duration_5years, commitment_1year, current_time, &mut treasury_cap, ctx);
 
       test_scenario::return_to_address(sender, treasury_cap);
     };
@@ -80,7 +80,7 @@ module loy::coin_locker_test {
       let mut treasury_cap = test_scenario::take_from_sender<TreasuryCap<LOY>>(& scenario);
       let ctx = test_scenario::ctx(&mut scenario);
 
-      coin_locker::mint_and_transfer(recipient, amount, start_time,
+      coin_locker::mint_and_transfer_helper(recipient, amount, start_time,
         duration_5years, commitment_1year, current_time, &mut treasury_cap, ctx);
 
       test_scenario::return_to_sender<TreasuryCap<LOY>>(&scenario, treasury_cap);
@@ -94,7 +94,7 @@ module loy::coin_locker_test {
       let mut locker = test_scenario::take_from_sender<CoinLocker<LOY>>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
 
-      coin_locker::claim_vested<LOY>(&mut locker, after_6months, ctx);
+      coin_locker::claim_vested_helper<LOY>(&mut locker, after_6months, ctx);
 
       test_scenario::return_to_sender(&scenario, locker);
     };
@@ -132,7 +132,7 @@ module loy::coin_locker_test {
       let mut treasury_cap = test_scenario::take_from_sender<TreasuryCap<LOY>>(& scenario);
       let ctx = test_scenario::ctx(&mut scenario);
 
-      coin_locker::mint_and_transfer(recipient, amount, start_time,
+      coin_locker::mint_and_transfer_helper(recipient, amount, start_time,
         duration_5years, commitment_1year, current_time, &mut treasury_cap, ctx);
 
       test_scenario::return_to_sender<TreasuryCap<LOY>>(&scenario, treasury_cap);
@@ -147,7 +147,7 @@ module loy::coin_locker_test {
     {
       let mut locker = test_scenario::take_from_sender<CoinLocker<LOY>>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
-      coin_locker::claim_vested<LOY>(&mut locker, after_3years, ctx);
+      coin_locker::claim_vested_helper<LOY>(&mut locker, after_3years, ctx);
       test_scenario::return_to_sender(&scenario, locker);
     };
 
@@ -174,7 +174,7 @@ module loy::coin_locker_test {
     {
       let mut locker = test_scenario::take_from_sender<CoinLocker<LOY>>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
-      coin_locker::claim_vested<LOY>(&mut locker, after_3years, ctx);
+      coin_locker::claim_vested_helper<LOY>(&mut locker, after_3years, ctx);
       test_scenario::return_to_sender(&scenario, locker);
     };
 

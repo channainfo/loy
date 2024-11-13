@@ -50,12 +50,12 @@ module loy::marketplace {
     }
   }
 
-  public entry fun list_item_entry<T: key+store, TCOIN>( item: T, listing_price: u64, clock: &Clock, marketplace: &mut Marketplace, ctx: &mut TxContext) {
+  public entry fun list_item<T: key+store, TCOIN>( item: T, listing_price: u64, clock: &Clock, marketplace: &mut Marketplace, ctx: &mut TxContext) {
     let listing_date = clock::timestamp_ms(clock);
-    list_item<T, TCOIN>(item, listing_price, listing_date, marketplace, ctx);
+    list_item_helper<T, TCOIN>(item, listing_price, listing_date, marketplace, ctx);
   }
 
-  public fun list_item<T: key+store, TCOIN>( item: T, listing_price: u64, listing_date: u64, marketplace: &mut Marketplace, ctx: &mut TxContext) {
+  public fun list_item_helper<T: key+store, TCOIN>( item: T, listing_price: u64, listing_date: u64, marketplace: &mut Marketplace, ctx: &mut TxContext) {
     let id = object::new(ctx);
     let owner_address = tx_context::sender(ctx);
     let item_id = object::id(&item);
@@ -73,7 +73,7 @@ module loy::marketplace {
   }
 
   #[allow(lint(self_transfer))]
-  public fun delist_item<T: key+store, TCOIN>(item_id: ID, marketplace: &mut Marketplace, ctx: &mut TxContext) {
+  public entry fun delist_item<T: key+store, TCOIN>(item_id: ID, marketplace: &mut Marketplace, ctx: &mut TxContext) {
     let owner_address = tx_context::sender(ctx);
     let product_listing = bag::remove<ID, ItemListing<T, TCOIN>>(&mut marketplace.products, item_id);
 
@@ -87,7 +87,7 @@ module loy::marketplace {
   }
 
   #[allow(lint(self_transfer))]
-  public fun buy_item<T: key+store, TCOIN>(paid_coin: Coin<TCOIN>, item_id: ID, marketplace: &mut Marketplace, ctx: &mut TxContext){
+  public entry fun buy_item<T: key+store, TCOIN>(paid_coin: Coin<TCOIN>, item_id: ID, marketplace: &mut Marketplace, ctx: &mut TxContext){
     let product_listing = bag::remove<ID, ItemListing<T, TCOIN>>(&mut marketplace.products, item_id);
     let ItemListing { id: id, item, listing_price, listing_date: _date, owner_address } = product_listing;
 
