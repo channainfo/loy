@@ -1,5 +1,4 @@
-module loy::lock {
-  use loy::loy::{LOY};
+module loy::coin_locker {
   use sui::coin::{Self, TreasuryCap};
   use sui::balance::{Self, Balance};
   use sui::clock::{Self, Clock};
@@ -8,7 +7,7 @@ module loy::lock {
   const E_NOT_ENOUGH_COMMITMENT_TIME: u64 = 2;
 
 
-  public struct Locker<phantom LOY> has key, store {
+  public struct CoinLocker<phantom TCOIN> has key, store {
     id: UID,
     start_time: u64,
     end_time: u64,
@@ -17,19 +16,19 @@ module loy::lock {
     recipient: address,
 
     issued_amount: u64,
-    amount_remaining: Balance<LOY>
+    amount_remaining: Balance<TCOIN>
   }
 
   // clock address: 0x6 https://github.com/sui-foundation/sui-move-intro-course/blob/main/unit-three/lessons/6_clock_and_locked_coin.md#clock
-  public entry fun mint_and_transfer_entry(recipient: address, amount: u64, start_time: u64, duration: u64, commitment_time: u64,
-    clock_obj: &Clock, treasury_cap: &mut TreasuryCap<LOY>, ctx: &mut TxContext) {
+  public entry fun mint_and_transfer<TCOIN>(recipient: address, amount: u64, start_time: u64, duration: u64, commitment_time: u64,
+    clock_obj: &Clock, treasury_cap: &mut TreasuryCap<TCOIN>, ctx: &mut TxContext) {
     let current_time = clock::timestamp_ms(clock_obj);
 
-    mint_and_transfer(recipient, amount, start_time, duration, commitment_time, current_time, treasury_cap, ctx);
+    mint_and_transfer_helper(recipient, amount, start_time, duration, commitment_time, current_time, treasury_cap, ctx);
   }
 
-  public fun mint_and_transfer(recipient: address, amount: u64, start_time: u64, duration: u64, commitment_time: u64,
-    current_time: u64, treasury_cap: &mut TreasuryCap<LOY>, ctx: &mut TxContext) {
+  public fun mint_and_transfer_helper<TCOIN>(recipient: address, amount: u64, start_time: u64, duration: u64, commitment_time: u64,
+    current_time: u64, treasury_cap: &mut TreasuryCap<TCOIN>, ctx: &mut TxContext) {
 
     // let init_time = (start_time < current_time) ? current_time : start_time;
     let init_time = if(start_time < current_time) {
@@ -42,10 +41,10 @@ module loy::lock {
     assert!( duration > commitment_time, E_DURATION_LT_COMMITMENT);
 
     let end_time = init_time + duration;
-    let coin_amount = coin::mint<LOY>(treasury_cap , amount, ctx);
-    let balance = coin::into_balance<LOY>(coin_amount);
+    let coin_amount = coin::mint<TCOIN>(treasury_cap , amount, ctx);
+    let balance = coin::into_balance<TCOIN>(coin_amount);
 
-    let locker = Locker<LOY>{
+    let locker = CoinLocker<TCOIN>{
       id: object::new(ctx),
       start_time: init_time,
       end_time,
@@ -58,14 +57,14 @@ module loy::lock {
     transfer::public_transfer(locker, recipient);
   }
 
-  public entry fun claim_vested_entry<LOY>(locker: &mut Locker<LOY>, clock_obj: &Clock, ctx: &mut TxContext) {
+  public entry fun claim_vested<TCOIN>(locker: &mut CoinLocker<TCOIN>, clock_obj: &Clock, ctx: &mut TxContext) {
     let current_time = clock::timestamp_ms(clock_obj);
 
-    claim_vested(locker, current_time, ctx);
+    claim_vested_helper<TCOIN>(locker, current_time, ctx);
   }
 
   #[allow(lint(self_transfer))]
-  public fun claim_vested<LOY>(locker: &mut Locker<LOY>, current_time: u64, ctx: &mut TxContext) {
+  public fun claim_vested_helper<TCOIN>(locker: &mut CoinLocker<TCOIN>, current_time: u64, ctx: &mut TxContext) {
     let duration_taken = current_time - locker.start_time;
 
     assert!(duration_taken > locker.commitment_time, E_NOT_ENOUGH_COMMITMENT_TIME);
@@ -87,7 +86,7 @@ module loy::lock {
   }
 
   //[test_only]
-  public fun match_locker(locker: &Locker<LOY>, recipient: address, start_time: u64, end_time: u64, commitment_time: u64,
+  public fun match_locker<TCOIN>(locker: &CoinLocker<TCOIN>, recipient: address, start_time: u64, end_time: u64, commitment_time: u64,
     isseued_amount: u64, amount_remaining: u64): bool {
 
     locker.recipient == recipient && locker.issued_amount == isseued_amount && locker.start_time == start_time

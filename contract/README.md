@@ -211,7 +211,7 @@ Import the private key bech32WithFlag (suiprivkey1qq***etr) to SUI Wallet
 - Move Std: <https://github.com/MystenLabs/sui/tree/main/crates/sui-framework/packages/move-stdlib/sources>
 - Move Lang Ref: <https://github.com/move-language/move/tree/main/language/documentation/book/src>
 - SUI Framework: <https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/dynamic_object_field.move>
-- SUI Sample Code: <https://github.com/MystenLabs/sui/tree/main/sui_programmability/examples/nfts>
+- SUI Example: <https://github.com/MystenLabs/sui/tree/main/examples>
 - Best Practises: <https://docs.sui.io/testnet/build/dev_cheat_sheet>
 
 ### Useful links

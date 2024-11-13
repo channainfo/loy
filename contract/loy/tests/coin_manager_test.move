@@ -1,11 +1,11 @@
 #[test_only]
-module loy::loy_manager_test {
+module loy::coin_manager_test {
   #[test]
   public fun test_mint_to() {
     use sui::coin::{Self, TreasuryCap};
     use sui::test_scenario;
     use loy::loy::{Self, LOY};
-    use loy::loy_manager;
+    use loy::coin_manager;
 
     let sender = @0x001;
     let recipient = @0x002;
@@ -22,7 +22,7 @@ module loy::loy_manager_test {
     {
       let mut treasury_cap = test_scenario::take_from_sender<TreasuryCap<LOY>>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
-      loy_manager::mint_to<LOY>(recipient, mint_amount, &mut treasury_cap, ctx);
+      coin_manager::mint_to<LOY>(recipient, mint_amount, &mut treasury_cap, ctx);
 
       test_scenario::return_to_sender<TreasuryCap<LOY>>(&scenario, treasury_cap);
     };
@@ -45,7 +45,7 @@ module loy::loy_manager_test {
     use sui::coin::{Self, TreasuryCap};
     use sui::test_scenario;
     use loy::loy::{Self, LOY};
-    use loy::loy_manager;
+    use loy::coin_manager;
     use loy::debugger;
 
     let sender = @0x001;
@@ -61,7 +61,7 @@ module loy::loy_manager_test {
     {
       let mut treasury_cap = test_scenario::take_from_sender<TreasuryCap<LOY>>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
-      loy_manager::mint_to<LOY>(sender, mint_amount, &mut treasury_cap, ctx);
+      coin_manager::mint_to<LOY>(sender, mint_amount, &mut treasury_cap, ctx);
 
       test_scenario::return_to_sender<TreasuryCap<LOY>>(&scenario, treasury_cap);
     };
@@ -72,7 +72,7 @@ module loy::loy_manager_test {
       let mut treasury_cap = test_scenario::take_from_sender<TreasuryCap<LOY>>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
 
-      loy_manager::burn(coin_amount, &mut treasury_cap, ctx);
+      coin_manager::burn(coin_amount, &mut treasury_cap, ctx);
 
       test_scenario::return_to_sender<TreasuryCap<LOY>>(&scenario, treasury_cap);
     };
