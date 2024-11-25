@@ -50,7 +50,7 @@ module loy::loy_test {
     {
       let mut treasury_cap = test_scenario::take_from_sender<TreasuryCap<LOY>>(&scenario);
       let ctx = test_scenario::ctx(&mut scenario);
-      loy::mint(&mut treasury_cap, 47, recipient, ctx);
+      loy::mint_and_transfer(&mut treasury_cap, 47, recipient, ctx);
       test_scenario::return_to_address(sender, treasury_cap);
     };
 
