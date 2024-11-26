@@ -1,6 +1,6 @@
 module loy::loy {
 
-  use sui::coin::{Self, TreasuryCap};
+  use sui::coin::{Self, Coin, TreasuryCap};
   use sui::url;
 
   // OTW struct
@@ -15,8 +15,12 @@ module loy::loy {
     create_admin_cap(ctx);
   }
 
-  public entry fun mint(treasury_cap: &mut TreasuryCap<LOY>, amount: u64, recipient: address, ctx: &mut TxContext) {
+  public entry fun mint_and_transfer(treasury_cap: &mut TreasuryCap<LOY>, amount: u64, recipient: address, ctx: &mut TxContext) {
     coin::mint_and_transfer(treasury_cap, amount, recipient, ctx);
+  }
+
+  public fun mint(treasury_cap: &mut TreasuryCap<LOY>, amount: u64, ctx: &mut TxContext): Coin<LOY> {
+    coin::mint(treasury_cap, amount, ctx)
   }
 
   #[allow(lint(self_transfer))]
