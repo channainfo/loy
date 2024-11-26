@@ -220,8 +220,47 @@ Import the private key bech32WithFlag (suiprivkey1qq***etr) to SUI Wallet
 
 ### Invoke contract from CLI
 
-<https://github.com/sui-foundation/sui-move-intro-course/blob/main/unit-three/lessons/2_intro_to_generics.md#calling-functions-with-generics-using-sui-cli>
+Call a function <https://github.com/sui-foundation/sui-move-intro-course/blob/main/unit-three/lessons/2_intro_to_generics.md#calling-functions-with-generics-using-sui-cli>
 
 ```sh
 sui client call --package $PACKAGE --module $MODULE --function "create_box" --args $OBJECT_ID --type-args 0x2::sui::SUI --gas-budget 10000000
+```
+
+Generic and marketplace with Sui token
+
+```sh
+# Publish the package
+export PACKAGE_ID=<package object ID from previous output>
+
+# Create a marketplace
+sui client call --function create --module marketplace --package $PACKAGE_ID --type-args 0x2::sui::SUI --gas-budget 10000000
+export MARKET_ID=<marketplace shared object ID from previous output>
+
+# List an item
+sui client call --function mint --module widget --package $PACKAGE_ID --gas-budget 10000000
+export ITEM_ID=<object ID of the widget item from console>
+sui client call --function list --module marketplace --package $PACKAGE_ID --args $MARKET_ID $ITEM_ID 1 --type-args $PACKAGE_ID::widget::Widget 0x2::sui::SUI --gas-budget 10000000
+
+# Purchase
+sui client split-coin --coin-id <object ID of the coin to be split> --amounts 1 --gas-budget 10000000
+export PAYMENT_ID=<object ID of the split 1 balance SUI coin>
+sui client call --function buy_and_take --module marketplace --package $PACKAGE_ID --args $MARKET_ID $ITEM_ID $PAYMENT_ID --type-args $PACKAGE_ID::widget::Widget 0x2::sui::SUI --gas-budget 10000000
+
+# Take payment
+sui client call --function take_profits_and_keep --module marketplace --package $PACKAGE_ID --args $MARKET_ID --type-args 0x2::sui::SUI --gas-budget 10000000
+
+```
+
+Programmable transaction block with flashloan: <https://github.com/sui-foundation/sui-move-intro-course/blob/main/unit-five/lessons/2_hot_potato_pattern.md>
+
+```sh
+sui client ptb \
+--move-call $LOAN_PACKAGE_ID::flashloan::borrow @$LOAN_POOL_ID 10000 \
+--assign borrow_res \
+--move-call $LOAN_PACKAGE_ID::flashloan::mint_nft borrow_res.0 \
+--assign nft \
+--move-call $LOAN_PACKAGE_ID::flashloan::sell_nft nft \
+--assign repay_coin \
+--move-call $LOAN_PACKAGE_ID::flashloan::repay @$LOAN_POOL_ID borrow_res.1 repay_coin \
+--gas-budget 10000000
 ```
